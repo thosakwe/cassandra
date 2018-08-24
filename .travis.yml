@@ -1,0 +1,4 @@
+language: dart
+sudo: required
+services:
+  - cassandra
