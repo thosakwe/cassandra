@@ -1,0 +1,8 @@
+name: cassandra
+description: A Dart driver for the Apache Cassandra database.
+homepage: https://github.com/thosakwe/dart_cassandra.git
+environment:
+  sdk: ">=1.8.0 <3.0.0"
+version: 0.0.0
+dev_dependencies:
+  test: ^1.0.0
