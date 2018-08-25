@@ -37,19 +37,27 @@ class CqlFrameHeader {
 
   CqlFrameHeaderVersion _version;
   CqlFrameHeaderFlags _flags;
+  int _streamId, _opcode;
 
   CqlFrameHeader(this.byteData);
 
-  /// Indic
+  /// Indicates both the direction of the message and the protocol version.
   CqlFrameHeaderVersion get version {
     return _version ??= new CqlFrameHeaderVersion(byteData.getUint8(0));
   }
 
+  /// Flags applying to this frame.
   CqlFrameHeaderFlags get flags {
     return _flags ??= new CqlFrameHeaderFlags(byteData.getUint8(1));
   }
 
+  int get streamId {
+    return _streamId ??= byteData.getInt16(2, Endian.big);
+  }
 
+  int get opcode {
+    return _opcode ??= byteData.getUint8(3);
+  }
 }
 
 /// The version is a single byte that indicates both the direction of the message
@@ -78,7 +86,7 @@ class CqlFrameHeaderVersion {
   bool get isResponse => _msb == 0x84;
 }
 
-/// Flags applying to this frame.
+/// Flags applying to a [CqlFrameHeader].
 class CqlFrameHeaderFlags {
   final int byte;
 
@@ -93,7 +101,7 @@ class CqlFrameHeaderFlags {
 
   /// For a request frame, this indicates the client requires
   /// tracing of the request. Note that only QUERY, PREPARE and EXECUTE queries
-  /// support tracing. Other requests will simply ignore the tracing flag if 
+  /// support tracing. Other requests will simply ignore the tracing flag if
   /// set. If a request supports tracing and the tracing flag is set, the response
   /// to this request will have the tracing flag set and contain tracing
   /// information.
