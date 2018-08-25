@@ -8,9 +8,6 @@ class BinaryReader extends StreamConsumer<List<int>> {
   final Queue<_BinaryReaderAwaiter> _awaiterQueue =
       new Queue<_BinaryReaderAwaiter>();
   final Queue<Uint8List> _byteQueue = new Queue<Uint8List>();
-  final Stream<List<int>> stream;
-
-  BinaryReader(this.stream);
 
   static Uint8List coerceUint8List(List<int> list) {
     return list is Uint8List ? list : new Uint8List.fromList(list);
@@ -36,7 +33,7 @@ class BinaryReader extends StreamConsumer<List<int>> {
         _byteQueue.removeFirst();
         _byteQueue.addFirst(remainder);
         return new Future<Uint8List>.value(
-            new Uint8List.view(top.buffer, 0, diff));
+            new Uint8List.view(top.buffer, 0, diff - 1));
       }
     }
 
@@ -127,7 +124,7 @@ class BinaryReader extends StreamConsumer<List<int>> {
       }
 
       // Enqueue all leftover data.
-      _byteQueue.addLast(new Uint8List.view(buf.buffer, index + 1));
+      _byteQueue.addLast(new Uint8List.view(buf.buffer, index));
     });
   }
 
@@ -135,8 +132,10 @@ class BinaryReader extends StreamConsumer<List<int>> {
   Future close() async {
     while (_awaiterQueue.isNotEmpty) {
       var awaiter = _awaiterQueue.removeFirst();
-      awaiter.completer
-          .completeError(new StateError('message'), awaiter.stackTrace);
+      awaiter.completer.completeError(
+          new StateError(
+              'Stream was closed before ${awaiter.fillLength} byte(s) could be read.'),
+          awaiter.stackTrace);
     }
   }
 }
