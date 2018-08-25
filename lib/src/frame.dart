@@ -77,13 +77,14 @@ class CqlFrameHeader {
 class CqlFrameHeaderVersion {
   final int value;
 
-  CqlFrameHeaderVersion(this.value);
+  CqlFrameHeaderVersion(this.value) {
+    assert(isRequest || isResponse,
+        'Invalid frame header version; expected 0x04 or 0x84, found $value.');
+  }
 
-  int get _msb => value << 7;
+  bool get isRequest => value == 0x04;
 
-  bool get isRequest => _msb == 0x04;
-
-  bool get isResponse => _msb == 0x84;
+  bool get isResponse => value == 0x84;
 }
 
 /// Flags applying to a [CqlFrameHeader].
