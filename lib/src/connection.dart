@@ -1,3 +1,1 @@
-class CassandraConnection {
-  
-}
+class CassandraConnection {}

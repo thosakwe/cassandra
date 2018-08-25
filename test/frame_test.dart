@@ -7,8 +7,10 @@ void main() {
 
   setUp(() {
     // Make a 9-byte header
-    requestHeader = new CqlFrameHeader(new ByteData.view(new Uint8List(9).buffer));
-    responseHeader = new CqlFrameHeader(new ByteData.view(new Uint8List(9).buffer));
+    requestHeader =
+        new CqlFrameHeader(new ByteData.view(new Uint8List(9).buffer));
+    responseHeader =
+        new CqlFrameHeader(new ByteData.view(new Uint8List(9).buffer));
 
     // Set direction
     requestHeader.byteData.setUint8(0, 0x04);
