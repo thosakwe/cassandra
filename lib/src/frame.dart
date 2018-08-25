@@ -37,7 +37,7 @@ class CqlFrameHeader {
 
   CqlFrameHeaderVersion _version;
   CqlFrameHeaderFlags _flags;
-  int _streamId;
+  int _streamId, _bodyLength;
   CqlFrameOpcode _opcode;
 
   CqlFrameHeader(this.byteData);
@@ -47,13 +47,28 @@ class CqlFrameHeader {
     return _version ??= new CqlFrameHeaderVersion(byteData.getUint8(0));
   }
 
+  void set version(CqlFrameHeaderVersion value) {
+    _version = value;
+    byteData.setUint8(0, value.value);
+  }
+
   /// Flags applying to this frame.
   CqlFrameHeaderFlags get flags {
     return _flags ??= new CqlFrameHeaderFlags(byteData.getUint8(1));
   }
 
+  void set flags(CqlFrameHeaderFlags value) {
+    _flags = value;
+    byteData.setUint16(1, value.flags);
+  }
+
   int get streamId {
     return _streamId ??= byteData.getInt16(2, Endian.big);
+  }
+
+  void set streamId(int value) {
+    _streamId = value;
+    byteData.setInt16(2, value, Endian.big);
   }
 
   CqlFrameOpcode get opcode {
@@ -69,6 +84,20 @@ class CqlFrameHeader {
 
       return _opcode = CqlFrameOpcode.values[byte];
     }
+  }
+
+  void set opcode(CqlFrameOpcode value) {
+    _opcode = opcode;
+    byteData.setUint8(3, CqlFrameOpcode.values.indexOf(value));
+  }
+
+  int get bodyLength {
+    return _bodyLength ??= byteData.getInt32(4, Endian.big);
+  }
+
+  void set bodyLength(int value) {
+    _bodyLength = value;
+    byteData.setInt32(4, value, Endian.big);
   }
 }
 
@@ -101,11 +130,11 @@ class CqlFrameHeaderVersion {
 
 /// Flags applying to a [CqlFrameHeader].
 class CqlFrameHeaderFlags {
-  final int byte;
+  final int flags;
 
-  CqlFrameHeaderFlags(this.byte);
+  CqlFrameHeaderFlags(this.flags);
 
-  bool _hasFlag(int flag) => (byte & flag) == flag;
+  bool _hasFlag(int flag) => (flags & flag) == flag;
 
   /// If set, the frame body is compressed.
   /// The actual compression to use should have been set up beforehand through the
