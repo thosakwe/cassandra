@@ -45,7 +45,7 @@ class CqlFrameHeader {
   }
 
   CqlFrameHeaderFlags get flags {
-    return _flags ??= new CqlFrameHeaderFlags(byteData.getUint8(0));
+    return _flags ??= new CqlFrameHeaderFlags(byteData.getUint8(1));
   }
 }
 
