@@ -68,11 +68,11 @@ class CqlFrameHeaderVersion {
 
   CqlFrameHeaderVersion(this.byte);
 
-  int get msb => byte << 7;
+  int get _msb => byte << 7;
 
-  bool get isRequest => msb == 0x04;
+  bool get isRequest => _msb == 0x04;
 
-  bool get isResponse => msb == 0x84;
+  bool get isResponse => _msb == 0x84;
 }
 
 /// Flags applying to this frame.
