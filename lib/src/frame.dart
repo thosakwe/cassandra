@@ -40,6 +40,7 @@ class CqlFrameHeader {
 
   CqlFrameHeader(this.byteData);
 
+  /// Indic
   CqlFrameHeaderVersion get version {
     return _version ??= new CqlFrameHeaderVersion(byteData.getUint8(0));
   }
@@ -47,6 +48,8 @@ class CqlFrameHeader {
   CqlFrameHeaderFlags get flags {
     return _flags ??= new CqlFrameHeaderFlags(byteData.getUint8(1));
   }
+
+
 }
 
 /// The version is a single byte that indicates both the direction of the message
@@ -64,11 +67,11 @@ class CqlFrameHeader {
 /// exchanged (`STARTUP`) sets the version for the connection for the lifetime of this
 /// connection.
 class CqlFrameHeaderVersion {
-  final int byte;
+  final int value;
 
-  CqlFrameHeaderVersion(this.byte);
+  CqlFrameHeaderVersion(this.value);
 
-  int get _msb => byte << 7;
+  int get _msb => value << 7;
 
   bool get isRequest => _msb == 0x04;
 
