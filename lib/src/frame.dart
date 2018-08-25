@@ -37,7 +37,8 @@ class CqlFrameHeader {
 
   CqlFrameHeaderVersion _version;
   CqlFrameHeaderFlags _flags;
-  int _streamId, _opcode;
+  int _streamId;
+  CqlFrameOpcode _opcode;
 
   CqlFrameHeader(this.byteData);
 
@@ -55,8 +56,19 @@ class CqlFrameHeader {
     return _streamId ??= byteData.getInt16(2, Endian.big);
   }
 
-  int get opcode {
-    return _opcode ??= byteData.getUint8(3);
+  CqlFrameOpcode get opcode {
+    if (_opcode != null) {
+      return _opcode;
+    } else {
+      var byte = byteData.getUint8(3);
+
+      if (byte < 0 || byte == 4 || byte >= CqlFrameOpcode.values.length) {
+        throw new FormatException(
+            'Invalid opcode for CQL binary frame; found $byte, expected integer from 0x00 to 0x10, which must not be 0x04.');
+      }
+
+      return _opcode = CqlFrameOpcode.values[byte];
+    }
   }
 }
 
@@ -128,4 +140,25 @@ class CqlFrameHeaderFlags {
   /// first value in the frame body if the tracing flag is not set, or directly
   /// after the tracing ID if it is.
   bool get hasWarning => _hasFlag(0x08);
+}
+
+/// The various types of frame in the CQL binary protocol.
+enum CqlFrameOpcode {
+  error,
+  startup,
+  ready,
+  authenticate,
+  _nonExistent,
+  options,
+  supported,
+  query,
+  result,
+  prepare,
+  execute,
+  register,
+  event,
+  batch,
+  authChallenge,
+  authResponse,
+  authSuccess
 }
