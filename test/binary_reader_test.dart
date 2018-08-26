@@ -32,4 +32,9 @@ void main() {
   test('fails on reads of too large a size', () async {
     expect(() => reader.read(1000), throwsStateError);
   });
+
+  test('subsequent reads', () async {
+    expect(await reader.read(3), [$H, $e, $l]);
+    expect(await reader.read(3), [$l, $o, $comma]);
+  });
 }

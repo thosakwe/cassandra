@@ -28,12 +28,12 @@ class BinaryReader extends StreamConsumer<List<int>> {
       // Or, if there is an excess of bytes,
       // return it, but only keep the remainder on the stack.
       else if (top.length > length) {
-        var diff = top.length - length;
-        var remainder = new Uint8List.view(top.buffer, diff);
+        var remainder =
+            new Uint8List.view(top.buffer, top.offsetInBytes + length);
+        var out = new Uint8List.view(top.buffer, top.offsetInBytes, length);
         _byteQueue.removeFirst();
-        _byteQueue.addFirst(remainder);
-        return new Future<Uint8List>.value(
-            new Uint8List.view(top.buffer, 0, diff - 1));
+        if (remainder.isNotEmpty) _byteQueue.addFirst(remainder);
+        return new Future<Uint8List>.value(out);
       }
     }
 
@@ -61,12 +61,12 @@ class BinaryReader extends StreamConsumer<List<int>> {
       // Otherwise, add the necessary amount, and only leave
       // the remainder on the queue.
       else {
-        var diff = top.length - length;
-        var remainder = new Uint8List.view(top.buffer, diff);
+        var remainder =
+            new Uint8List.view(top.buffer, top.offsetInBytes + length);
+        var out = new Uint8List.view(top.buffer, top.offsetInBytes, length);
         _byteQueue.removeFirst();
-        _byteQueue.addFirst(remainder);
-        return new Future<Uint8List>.value(
-            new Uint8List.view(top.buffer, 0, diff));
+        if (remainder.isNotEmpty) _byteQueue.addFirst(remainder);
+        return new Future<Uint8List>.value(out);
       }
     }
 
