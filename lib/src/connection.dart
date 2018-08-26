@@ -16,10 +16,7 @@ class CassandraConnection {
   Socket _socket;
 
   CassandraConnection(this.host, this.port,
-      {this.username,
-      this.password,
-      this.keyspaceName,
-      this.useSsl: false});
+      {this.username, this.password, this.keyspaceName, this.useSsl: false});
 
   Future open() async {
     if (_socket != null) {
@@ -37,10 +34,7 @@ class CassandraConnection {
           //  print('Incoming: ${new String.fromCharCodes(buf)}');
           //  return buf;
           // })
-          .pipe(_reader)
-          .then((_) {
-        print('Done');
-      });
+          .pipe(_reader);
 
       await sendStartupRequest();
     }
