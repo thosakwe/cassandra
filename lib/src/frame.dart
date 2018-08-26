@@ -110,15 +110,17 @@ class CqlFrameHeader {
 /// exchanged (`STARTUP`) sets the version for the connection for the lifetime of this
 /// connection.
 class CqlFrameHeaderVersion {
-  final int value;
+  final int _byte;
 
-  const CqlFrameHeaderVersion(this.value);
+  const CqlFrameHeaderVersion(this._byte);
 
-  static const CqlFrameHeaderVersion request =
-      const CqlFrameHeaderVersion(0x04);
+  static const CqlFrameHeaderVersion requestV5 =
+      const CqlFrameHeaderVersion(0x05);
 
-  static const CqlFrameHeaderVersion response =
-      const CqlFrameHeaderVersion(0x84);
+  static const CqlFrameHeaderVersion responseV5 =
+      const CqlFrameHeaderVersion(0x85);
+
+  int get value => (_byte & 0x05) << 4;
 
   bool get isRequest => value == 0x04;
 
@@ -166,6 +168,11 @@ class CqlFrameHeaderFlags {
   /// first value in the frame body if the tracing flag is not set, or directly
   /// after the tracing ID if it is.
   bool get hasWarning => _hasFlag(0x08);
+
+  /// Indicates that the client opts in to use protocol version
+  /// that is currently in beta. Server will respond with ERROR if protocol
+  /// version is marked as beta on server and client does not provide this flag.
+  bool get isBeta => _hasFlag(0x10);
 }
 
 /// The various types of frame in the CQL binary protocol.

@@ -43,7 +43,7 @@ class CassandraConnection {
   Future sendStartupRequest() async {
     var buf = new Uint8List(9);
     new CqlFrameHeader(new ByteData.view(buf.buffer))
-      ..version = CqlFrameHeaderVersion.request
+      ..version = CqlFrameHeaderVersion.requestV5
       ..opcode = CqlFrameOpcode.startup
       ..streamId = 0
       ..flags = CqlFrameHeaderFlags(0);
