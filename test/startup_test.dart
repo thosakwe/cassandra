@@ -5,7 +5,7 @@ void main() {
   CassandraConnection connection;
 
   setUp(() async {
-    connection = new CassandraConnection('localhost', 7199);
+    connection = new CassandraConnection('localhost', 9042);
   });
 
   tearDown(() async {

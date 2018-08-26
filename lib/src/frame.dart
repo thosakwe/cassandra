@@ -48,7 +48,7 @@ class CqlFrameHeader {
 
   void set version(CqlFrameHeaderVersion value) {
     _version = value;
-    byteData.setUint8(0, value.value);
+    byteData.setUint8(0, value._byte);
   }
 
   /// Flags applying to this frame.
@@ -58,16 +58,16 @@ class CqlFrameHeader {
 
   void set flags(CqlFrameHeaderFlags value) {
     _flags = value;
-    byteData.setUint16(1, value.flags);
+    byteData.setUint16(1, value.flags, Endian.big);
   }
 
   int get streamId {
-    return _streamId ??= byteData.getInt16(2, Endian.big);
+    return _streamId ??= byteData.getUint16(2, Endian.big);
   }
 
   void set streamId(int value) {
     _streamId = value;
-    byteData.setInt16(2, value, Endian.big);
+    byteData.setUint16(2, value, Endian.big);
   }
 
   CqlFrameOpcode get opcode {
@@ -122,9 +122,9 @@ class CqlFrameHeaderVersion {
 
   int get value => (_byte & 0x05) << 4;
 
-  bool get isRequest => value == 0x04;
+  bool get isRequest => !isResponse;
 
-  bool get isResponse => value == 0x84;
+  bool get isResponse => (_byte & 0x80) == 0x80;
 }
 
 /// Flags applying to a [CqlFrameHeader].
