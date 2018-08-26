@@ -38,7 +38,6 @@ class CqlFrameHeader {
   CqlFrameHeaderVersion _version;
   CqlFrameHeaderFlags _flags;
   int _streamId, _bodyLength;
-  CqlFrameOpcode _opcode;
 
   CqlFrameHeader(this.byteData);
 
@@ -72,32 +71,27 @@ class CqlFrameHeader {
   }
 
   CqlFrameOpcode get opcode {
-    if (_opcode != null) {
-      return _opcode;
-    } else {
-      var byte = byteData.getUint8(3);
+    var byte = byteData.getUint8(4);
 
-      if (byte < 0 || byte == 4 || byte >= CqlFrameOpcode.values.length) {
-        throw new FormatException(
-            'Invalid opcode for CQL binary frame; found $byte, expected integer from 0x00 to 0x10, which must not be 0x04.');
-      }
-
-      return _opcode = CqlFrameOpcode.values[byte];
+    if (byte < 0 || byte == 4 || byte >= CqlFrameOpcode.values.length) {
+      throw new FormatException(
+          'Invalid opcode for CQL binary frame; found $byte, expected integer from 0x00 to 0x10, which must not be 0x04.');
     }
+
+    return CqlFrameOpcode.values[byte];
   }
 
   void set opcode(CqlFrameOpcode value) {
-    _opcode = opcode;
-    byteData.setUint8(3, CqlFrameOpcode.values.indexOf(value));
+    byteData.setUint8(4, value.index);
   }
 
   int get bodyLength {
-    return _bodyLength ??= byteData.getInt32(4, Endian.big);
+    return _bodyLength ??= byteData.getInt32(5, Endian.big);
   }
 
   void set bodyLength(int value) {
     _bodyLength = value;
-    byteData.setInt32(4, value, Endian.big);
+    byteData.setInt32(5, value, Endian.big);
   }
 }
 
@@ -118,10 +112,13 @@ class CqlFrameHeader {
 class CqlFrameHeaderVersion {
   final int value;
 
-  CqlFrameHeaderVersion(this.value) {
-    assert(isRequest || isResponse,
-        'Invalid frame header version; expected 0x04 or 0x84, found $value.');
-  }
+  const CqlFrameHeaderVersion(this.value);
+
+  static const CqlFrameHeaderVersion request =
+      const CqlFrameHeaderVersion(0x04);
+
+  static const CqlFrameHeaderVersion response =
+      const CqlFrameHeaderVersion(0x84);
 
   bool get isRequest => value == 0x04;
 
@@ -132,7 +129,7 @@ class CqlFrameHeaderVersion {
 class CqlFrameHeaderFlags {
   final int flags;
 
-  CqlFrameHeaderFlags(this.flags);
+  const CqlFrameHeaderFlags(this.flags);
 
   bool _hasFlag(int flag) => (flags & flag) == flag;
 
