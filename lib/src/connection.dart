@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'binary_reader.dart';
@@ -12,7 +11,6 @@ class CassandraConnection {
   final String password;
   final String keyspaceName;
   final bool useSsl;
-  final bool automaticallySendStartupMessage;
 
   BinaryReader _reader;
   Socket _socket;
@@ -21,8 +19,7 @@ class CassandraConnection {
       {this.username,
       this.password,
       this.keyspaceName,
-      this.useSsl: false,
-      this.automaticallySendStartupMessage: true});
+      this.useSsl: false});
 
   Future open() async {
     if (_socket != null) {
@@ -44,6 +41,8 @@ class CassandraConnection {
           .then((_) {
         print('Done');
       });
+
+      await sendStartupRequest();
     }
   }
 

@@ -5,12 +5,7 @@ void main() {
   CassandraConnection connection;
 
   setUp(() async {
-    connection = new CassandraConnection(
-      'localhost',
-      7199,
-      automaticallySendStartupMessage: false,
-    );
-    await connection.open();
+    connection = new CassandraConnection('localhost', 7199);
   });
 
   tearDown(() async {
@@ -18,6 +13,6 @@ void main() {
   });
 
   test('startup', () async {
-    await connection.sendStartupRequest();
+    await connection.open();
   });
 }
