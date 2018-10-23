@@ -114,6 +114,12 @@ class CqlFrameHeaderVersion {
 
   const CqlFrameHeaderVersion(this._byte);
 
+  static const CqlFrameHeaderVersion requestV4 =
+      const CqlFrameHeaderVersion(0x04);
+
+  static const CqlFrameHeaderVersion responseV4 =
+      const CqlFrameHeaderVersion(0x84);
+
   static const CqlFrameHeaderVersion requestV5 =
       const CqlFrameHeaderVersion(0x05);
 
@@ -181,6 +187,7 @@ enum CqlFrameOpcode {
   startup,
   ready,
   authenticate,
+  // ignore: unused_field
   _nonExistent,
   options,
   supported,

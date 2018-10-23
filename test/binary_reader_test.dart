@@ -37,4 +37,33 @@ void main() {
     expect(await reader.read(3), [$H, $e, $l]);
     expect(await reader.read(3), [$l, $o, $comma]);
   });
+
+  group('enqueued reads', () {
+    Stream<List<int>> data;
+
+    setUp(() {
+      data = new Stream<List<int>>.fromIterable([
+        [$f, $o, $o],
+        [$b, $a],
+        [$r],
+      ]);
+    });
+
+    test('data added after listening', () async {
+      var reader = new BinaryReader();
+      var f = reader.read(5);
+      data.pipe(reader);
+      expect(f, completion([$f, $o, $o, $b, $a]));
+    });
+
+    test('subsequent reads', () async {
+      var reader = new BinaryReader();
+      var f = reader.read(2);
+      var g = reader.read(4);
+      print('g should be ${[$o, $o, $b, $a]}');
+      data.pipe(reader);
+      expect(f, completion([$f, $o]));
+      expect(g, completion([$o, $b, $a, $r]));
+    });
+  });
 }

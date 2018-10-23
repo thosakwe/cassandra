@@ -88,7 +88,7 @@ class CassandraConnection {
 
     // Write the header.
     new CqlFrameHeader(byteData)
-      ..version = CqlFrameHeaderVersion.requestV5
+      ..version = CqlFrameHeaderVersion.requestV4
       ..flags = CqlFrameHeaderFlags(0)
       ..streamId = 0
       ..opcode = CqlFrameOpcode.options
@@ -100,21 +100,25 @@ class CassandraConnection {
 
     // Read the next header...
     var resBuf = await _reader.read(9);
-    var resHeader = new CqlFrameHeader(new ByteData.view(resBuf.buffer));
-    var data = await _reader.read(resHeader.bodyLength);
-    byteData = new ByteData.view(data.buffer);
+    var resData = new ByteData.view(resBuf.buffer, resBuf.offsetInBytes, 9);
+    var resHeader = new CqlFrameHeader(resData);
 
-    // Get the error code
-    var errorCode = byteData.getInt32(0, Endian.big);
+    if (resHeader.opcode != CqlFrameOpcode.supported) {
+      var data = await _reader.read(resHeader.bodyLength);
+      var msgData = new ByteData.view(data.buffer, data.offsetInBytes);
 
-    // Read the length of the message.
-    var msgLen = byteData.getUint16(4, Endian.big);
+      // Get the error code
+      var errorCode = msgData.getInt32(0, Endian.big);
 
-    // Next, read the message.
-    var msgBuf = new Uint8List.view(data.buffer, 6, msgLen);
-    var msg = utf8.decode(msgBuf);
+      // Read the length of the message.
+      var msgLen = msgData.getUint16(4, Endian.big);
 
-    throw new StateError('Error $errorCode: $msg');
+      // Next, read the message.
+      var msgBuf =
+          new Uint8List.view(msgData.buffer, msgData.offsetInBytes + 6, msgLen);
+      var msg = utf8.decode(msgBuf);
+      throw new StateError('Error $errorCode: $msg');
+    }
   }
 
   Future sendStartupRequest() async {
@@ -126,7 +130,7 @@ class CassandraConnection {
 
     // Write the header.
     new CqlFrameHeader(byteData)
-      ..version = CqlFrameHeaderVersion.requestV5
+      ..version = CqlFrameHeaderVersion.requestV4
       ..flags = CqlFrameHeaderFlags(0)
       ..streamId = 0
       ..opcode = CqlFrameOpcode.startup

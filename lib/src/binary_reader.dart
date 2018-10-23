@@ -89,6 +89,33 @@ class BinaryReader extends StreamConsumer<List<int>> {
       // Complete any possible awaiters.
       while (_awaiterQueue.isNotEmpty && index < buf.length - 1) {
         var top = _awaiterQueue.first;
+        //print(
+        //    'want ${top.remaining} from ${top.fillLength}; top: ${top.builder.toBytes()}, buf: $buf (${buf.hashCode})');
+        //print('buf as str: ${new String.fromCharCodes(buf)}');
+        //print('i = $index/${buf.length - 1}');
+
+        // Dump out enqueued bytes into awaiters.
+        while (_byteQueue.isNotEmpty && top.remaining > 0) {
+          var topBytes = _byteQueue.removeFirst();
+
+          if (topBytes.length <= top.remaining) {
+            top.builder.add(topBytes);
+          } else {
+            var length = top.remaining;
+            var remainder =
+                new Uint8List.view(topBytes.buffer, topBytes.offsetInBytes + length);
+            var out = new Uint8List.view(topBytes.buffer, topBytes.offsetInBytes, length);
+            _byteQueue.removeFirst();
+            if (remainder.isNotEmpty) _byteQueue.addFirst(remainder);
+            return new Future<Uint8List>.value(out);
+          }
+        }
+
+        if (top.remaining == 0) {
+          _awaiterQueue.removeFirst();
+          top.completer.complete(coerceUint8List(top.builder.toBytes()));
+          continue;
+        }
 
         // If this is the first entry being added, and it is the exact size, add it.
         if (top.remaining == buf.length && top.builder.isEmpty) {
@@ -99,6 +126,8 @@ class BinaryReader extends StreamConsumer<List<int>> {
 
         // If the buffer has >= the size, add the whole thing.
         else if (top.remaining >= buf.length) {
+          //print(
+          //    'Dumping all! ${buf.length} byte(s) into ${top.remaining}/${top.fillLength}!!');
           top.builder.add(buf);
 
           // Remove the awaiter if it's completed.
@@ -112,19 +141,39 @@ class BinaryReader extends StreamConsumer<List<int>> {
 
         // Otherwise, only add what is necessary.
         else {
-          top.builder.add(new Uint8List.view(buf.buffer, 0, top.remaining));
-          index = top.remaining;
+          var out =
+              new Uint8List.view(buf.buffer, buf.offsetInBytes, top.remaining);
+          //print('a awaiting ${top.remaining} from ${top.fillLength}; o: $out');
+          index += top.remaining;
+          top.builder.add(out);
 
           // Remove the awaiter if it's completed.
           if (top.remaining == 0) {
             _awaiterQueue.removeFirst();
             top.completer.complete(coerceUint8List(top.builder.toBytes()));
+            //print('boom');
+          } else {
+            buf = new Uint8List.view(buf.buffer, buf.offsetInBytes + index);
           }
+
+          // Enqueue all leftover data.
+          if (index >= 0) {
+            var leftover =
+                new Uint8List.view(buf.buffer, buf.offsetInBytes + index);
+            buf = leftover;
+          }
+
+          //print('Index is now $index; buf is now $buf (${buf.hashCode})');
         }
       }
 
       // Enqueue all leftover data.
-      _byteQueue.addLast(new Uint8List.view(buf.buffer, index));
+      //print('Final i: $index');
+      if (buf.isNotEmpty) {
+        var leftover = buf;
+        //print('Leftover: $leftover (${new String.fromCharCodes(leftover)})');
+        _byteQueue.addLast(leftover);
+      }
     });
   }
 
